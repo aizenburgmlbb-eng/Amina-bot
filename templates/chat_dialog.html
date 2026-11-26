@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Чат с {{ other_user.username }}{% endblock %}
+{% block content %}
+<div class="dialog-header">
+    <a href="{{ url_for('chat_sibiria') }}">←</a>
+    <a href="{{ url_for('user_profile', user_id=other_user.id) }}" 
+       class="{% if other_user.role in ['owner', 'co_owner'] %}role-owner{% elif other_user.role == 'admin' %}role-admin{% elif other_user.role == 'moderator' %}role-moderator{% elif other_user.role == 'system' %}role-system{% else %}role-user{% endif %}" 
+       style="font-size:16px; margin:0;">
+       {{ other_user.username }} {{ other_user.lastname or '' }}
+    </a>
+</div>
+
+{% if pinned %}
+<div style="background: rgba(255,255,255,0.8); padding: 10px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; border-left: 4px solid #2563eb;">
+    <b>Закреплено:</b> {{ pinned[0].text }}
+</div>
+{% endif %}
+
+<div class="chat-box" style="height: 65vh; position: relative;">
+    <div class="chat-messages" id="dialog-messages" style="background: rgba(255,255,255,0.3);"></div>
+
+    {% if other_user.role == 'system' %}
+        <div class="mute-warning" style="background: rgba(139, 92, 246, 0.1); color: #6d28d9; border-color: #c4b5fd;">
+            Это системные уведомления. Писать сюда нет смысла.
+        </div>
+    {% elif user.is_muted() %}
+        <div class="mute-warning">Вам запрещено писать в чат до {{ user.mute_until.strftime("%d.%m %H:%M") }}</div>
+    {% else %}
+        <form class="chat-form" id="dialog-form">
+            <input type="text" id="dialog-input" name="text" placeholder="Сообщение..." autocomplete="off">
+            <button type="submit">➤</button>
+        </form>
+    {% endif %}
+</div>
+
+<!-- Дальше идет тот же JS, что и был, без изменений -->
+<script>
+    let lastMsgId = 0;
+    let isSending = false;
+    const dialogId = {{ dialog.id }};
+    const msgContainer = document.getElementById('dialog-messages');
+    const form = document.getElementById('dialog-form');
+    const input = document.getElementById('dialog-input');
+
+    function fetchDialogMessages() {
+        fetch(`/chats/${dialogId}/messages?since=${lastMsgId}`)
+            .then(r => r.json())
+            .then(data => {
+                let scrollNeeded = false;
+                data.forEach(msg => {
+                    lastMsgId = Math.max(lastMsgId, msg.id);
+                    const row = document.createElement('div');
+                    row.className = 'msg-row' + (msg.is_mine ? ' mine' : '');
+                    
+                    // Стиль для системных сообщений
+                    let bubbleStyle = msg.sender_id === 777 ? "background: rgba(139, 92, 246, 0.9); color: white;" : "";
+
+                    row.innerHTML = `
+                        <div class="msg-bubble" style="${bubbleStyle}">
+                            <div>${msg.text} <span style="font-size:10px; opacity:0.6; margin-left:5px;">${msg.time}</span></div>
+                        </div>
+                    `;
+                    msgContainer.appendChild(row);
+                    scrollNeeded = true;
+                });
+                if (scrollNeeded) msgContainer.scrollTop = msgContainer.scrollHeight;
+            });
+    }
+
+    if (form) {
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            if (isSending) return;
+            const text = input.value.trim();
+            if (!text) return;
+            isSending = true;
+            fetch(`/chats/${dialogId}/send`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: text})
+            }).finally(() => { 
+                isSending = false; input.value = ''; fetchDialogMessages(); 
+            });
+        });
+    }
+
+    setInterval(fetchDialogMessages, 1500);
+    fetchDialogMessages();
+</script>
+{% endblock %}

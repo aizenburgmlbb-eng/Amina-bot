@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<h1>Регистрация</h1>
+<form method="post">
+    <input name="username" placeholder="Имя (Логин)" value="{{ username or '' }}" required>
+    <input name="lastname" placeholder="Фамилия" value="{{ lastname or '' }}">
+    
+    <div style="position: relative;">
+        <input name="password" type="password" id="pass1" placeholder="Пароль (мин. 12 символов)" required style="padding-right: 40px;">
+        <span onclick="togglePass('pass1')" style="position:absolute; right:15px; top:15px; cursor:pointer; user-select:none;">👁️</span>
+    </div>
+    
+    <div style="position: relative;">
+        <input name="password2" type="password" id="pass2" placeholder="Повтори пароль" required style="padding-right: 40px;">
+        <span onclick="togglePass('pass2')" style="position:absolute; right:15px; top:15px; cursor:pointer; user-select:none;">👁️</span>
+    </div>
+    
+    <button type="submit">Создать аккаунт</button>
+</form>
+<p style="text-align:center; margin-top:15px;">Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+
+<script>
+function togglePass(id) {
+    var x = document.getElementById(id);
+    if (x.type === "password") { x.type = "text"; } 
+    else { x.type = "password"; }
+}
+</script>
+{% endblock %}

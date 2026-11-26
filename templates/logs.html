@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Журнал действий{% endblock %}
+{% block content %}
+<h1>Журнал действий</h1>
+<div style="max-height: 60vh; overflow-y: auto;">
+    {% for log in logs %}
+    <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding: 10px 0; font-size: 14px;">
+        <b class="{% if log.user.role == 'owner' %}role-owner{% elif log.user.role == 'admin' %}role-admin{% elif log.user.role == 'moderator' %}role-moderator{% else %}role-user{% endif %}">
+            {{ log.user.username }}
+        </b> 
+        <span style="color: #555;">{{ log.action }}</span>
+        <div style="font-size: 11px; color: #888; margin-top: 2px;">{{ log.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
+    </div>
+    {% else %}
+    <p style="text-align: center; color: #888; margin-top: 20px;">Логов пока нет.</p>
+    {% endfor %}
+</div>
+<div style="text-align: center; margin-top: 20px; margin-bottom: 10px;">
+    <a href="{{ url_for('administration') }}" class="btn-secondary" style="display:inline-block; padding: 10px 20px; border-radius: 14px; text-decoration: none; width: 100%; box-sizing: border-box;">← Вернуться в Администрацию</a>
+</div>
+{% endblock %}

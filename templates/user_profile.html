@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Профиль: {{ target.username }}{% endblock %}
+{% block content %}
+
+<div style="text-align: center; margin-bottom: 15px; margin-top: -10px;">
+    <div style="width: 220px; height: 220px; margin: 0 auto; background: #ff6600;
+                -webkit-mask: url('{{ url_for('static', filename='images/logo.png') }}') center / contain no-repeat;
+                mask: url('{{ url_for('static', filename='images/logo.png') }}') center / contain no-repeat;"></div>
+</div>
+
+<h1 class="{% if target.role in ['owner', 'co_owner'] %}role-owner{% elif target.role == 'admin' %}role-admin{% elif target.role == 'moderator' %}role-moderator{% else %}role-user{% endif %}">
+    {{ target.username }}
+</h1>
+
+<div class="profile-row"><span class="label">Фамилия</span><span class="value">{{ target.lastname or 'Не указана' }}</span></div>
+<div class="profile-row"><span class="label">Пол</span><span class="value">{{ target.gender or 'Не указан' }}</span></div>
+
+{% if target.mute_until and target.mute_until > now %}
+<div class="profile-row"><span class="label" style="color:#991b1b;">Мут до</span><span class="value" style="color:#991b1b;">{{ target.mute_until.strftime("%d.%m.%Y %H:%M") }}</span></div>
+{% endif %}
+
+{% if target.id != session.get('user_id') %}
+    <a href="{{ url_for('chats_start', target_id=target.id) }}" class="btn-secondary" style="display:block; text-align:center; margin-top:20px; text-decoration:none; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.6);">✉️ Написать сообщение</a>
+{% endif %}
+
+{% if perms.mute or perms.admin or perms.moderator or perms.co_owner %}
+<hr style="margin: 25px 0 15px 0; border:0; border-top:1px solid rgba(0,0,0,0.1);">
+<h3 style="text-align: center; margin-bottom: 15px;">Управление</h3>
+<div style="display:flex; gap:10px; flex-wrap:wrap; justify-content: center;">
+    
+    {% if perms.co_owner %}
+        {% if target.role == 'co_owner' %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="unset_co_owner"><button class="btn-danger" style="width:auto; padding:10px 15px; font-size:14px;">Снять со-владельца</button></form>
+        {% else %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="set_co_owner"><button class="btn-success" style="width:auto; padding:10px 15px; font-size:14px;">Выдать со-владельца</button></form>
+        {% endif %}
+    {% endif %}
+
+    {% if perms.moderator %}
+        {% if target.role == 'moderator' %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="unset_mod"><button class="btn-secondary" style="width:auto; padding:10px 15px; font-size:14px;">Снять модератора</button></form>
+        {% else %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="set_mod"><button class="btn-success" style="width:auto; padding:10px 15px; font-size:14px;">Выдать модератора</button></form>
+        {% endif %}
+    {% endif %}
+    
+    {% if perms.admin %}
+        {% if target.role == 'admin' %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="unset_admin"><button class="btn-secondary" style="width:auto; padding:10px 15px; font-size:14px;">Снять админа</button></form>
+        {% else %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="set_admin"><button class="btn-success" style="width:auto; padding:10px 15px; font-size:14px;">Выдать админа</button></form>
+        {% endif %}
+    {% endif %}
+    
+    {% if perms.ban %}
+        {% if target.is_banned %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="unban"><button class="btn-secondary" style="width:auto; padding:10px 15px; font-size:14px;">Разблокировать</button></form>
+        {% else %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="ban"><button class="btn-danger" style="width:auto; padding:10px 15px; font-size:14px;">Заблокировать</button></form>
+        {% endif %}
+    {% endif %}
+    
+    {% if perms.mute %}
+        {% if target.mute_until and target.mute_until > now %}
+            <form method="post" action="/user/{{ target.id }}/action"><input type="hidden" name="action" value="unmute"><button class="btn-secondary" style="width:auto; padding:10px 15px; font-size:14px;">Снять мут</button></form>
+        {% else %}
+            <form method="post" action="/user/{{ target.id }}/action" style="display:flex; gap:5px;">
+                <input type="hidden" name="action" value="mute">
+                <select name="minutes" style="width:auto; margin:0; padding:10px; border-radius:12px; background:rgba(255,255,255,0.8);">
+                    <option value="10">10 мин</option><option value="60">1 час</option><option value="360">6 часов</option><option value="1440">24 часа</option><option value="4320">3 дня</option>
+                </select>
+                <button class="btn-danger" style="width:auto; padding:10px 15px; font-size:14px;">Мут</button>
+            </form>
+        {% endif %}
+    {% endif %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 20px;">
+    <a href="javascript:history.back()" class="btn-secondary" style="display:inline-block; padding: 10px 20px; border-radius: 14px; text-decoration: none;">← Назад</a>
+</div>
+
+{% endblock %}

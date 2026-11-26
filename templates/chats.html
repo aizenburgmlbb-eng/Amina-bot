@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Чаты{% endblock %}
+{% block content %}
+<h1>Чаты</h1>
+
+<a href="{{ url_for('chats_new') }}" class="btn-secondary" style="display:block; text-align:center; margin-bottom:15px; border:1px solid #ddd; text-decoration:none; padding:10px; border-radius:10px;">✏️ Новое сообщение</a>
+
+{% if chat_list %}
+    <div style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fff;">
+    {% for chat in chat_list %}
+        <a href="{{ url_for('chat_dialog', dialog_id=chat.dialog_id) }}" class="chat-list-item">
+            <div class="chat-avatar">{{ chat.other_user.username[0]|upper }}</div>
+            <div class="chat-info">
+                <div class="chat-name">{{ chat.other_user.username }}</div>
+                <div class="chat-last-msg">{{ chat.last_text }}</div>
+            </div>
+            <div class="chat-meta">
+                {{ chat.last_time.strftime("%H:%M") if chat.last_time.strftime("%d") == now.strftime("%d") else chat.last_time.strftime("%d.%m") }}
+                {% if chat.unread > 0 %}
+                    <div class="chat-unread">{{ chat.unread }}</div>
+                {% endif %}
+            </div>
+        </a>
+    {% endfor %}
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 40px 0; color: #666;">
+        <p>У вас пока нет диалогов.</p>
+        <p>Нажмите «Новое сообщение», чтобы начать общение.</p>
+    </div>
+{% endif %}
+{% endblock %}

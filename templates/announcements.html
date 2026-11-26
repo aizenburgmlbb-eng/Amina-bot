@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Объявления{% endblock %}
+{% block content %}
+<h1>Объявления</h1>
+<p style="text-align: center; font-size: 13px; color: #666; margin-bottom: 15px;">Официальные сообщения от администрации</p>
+
+<div class="chat-box">
+    <div id="chat-messages" style="flex: 1; overflow-y: auto; background: rgba(255, 255, 255, 0.4); border-radius: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column; padding: 10px;"></div>
+
+    {% if user.role in ["owner", "co_owner", "admin", "moderator"] %}
+        <form class="chat-form" id="chat-form">
+            <input type="text" id="chat-input" name="text" placeholder="Написать объявление..." autocomplete="off">
+            <button type="submit">➤</button>
+        </form>
+    {% else %}
+        <div class="mute-warning" style="background: rgba(241, 245, 249, 0.9); color: #334155; border-color: #cbd5e1;">
+            Только администрация может публиковать объявления.
+        </div>
+    {% endif %}
+</div>
+
+{% if user.role in ["owner", "co_owner", "admin", "moderator"] %}
+<div id="action-menu" style="display:none; position:fixed; background:rgba(255,255,255,0.95); backdrop-filter: blur(10px); border:1px solid rgba(0,0,0,0.1); border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.2); z-index:1000; overflow:hidden; flex-direction:column; min-width:150px;">
+    <button id="menu-pin-btn" onclick="menuAction('pin')" style="background:none; border:none; padding:10px 15px; text-align:left; font-size:14px; cursor:pointer; border-bottom:1px solid #eee; border-radius:0; color:#b45309; width:100%;">📌 Закрепить</button>
+    <button onclick="menuAction('delete')" style="background:none; border:none; padding:10px 15px; text-align:left; font-size:14px; cursor:pointer; border-bottom:1px solid #eee; border-radius:0; color:#991b1b; width:100%;">🗑️ Удалить</button>
+    <div id="menu-id-display" style="padding: 8px 15px; font-size: 11px; color: #999; text-align: center; background: rgba(0,0,0,0.02);">Номер сообщения: </div>
+</div>
+{% endif %}
+
+<script>
+    let lastId = 0;
+    let isSending = false;
+    let currentActionMsg = null;
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const actionMenu = document.getElementById('action-menu');
+    const canManage = actionMenu !== null;
+
+    function getRoleClass(role) {
+        if (role === 'owner' || role === 'co_owner') return 'role-owner';
+        if (role === 'admin') return 'role-admin';
+        if (role === 'moderator') return 'role-moderator';
+        if (role === 'system') return 'role-system';
+        return 'role-user';
+    }
+
+    function showMenu(e, msg) {
+        e.stopPropagation();
+        currentActionMsg = msg;
+        document.getElementById('menu-pin-btn').innerText = msg.is_pinned ? "📌 Открепить" : "📌 Закрепить";
+        document.getElementById('menu-id-display').innerText = `Номер сообщения: ${msg.id}`;
+        const rect = e.target.getBoundingClientRect();
+        actionMenu.style.display = 'flex';
+        let top = rect.bottom + 5;
+        if (top + 120 > window.innerHeight) top = rect.top - 120;
+        actionMenu.style.top = top + 'px';
+        let leftPos = rect.left - 160;
+        if (leftPos < 10) leftPos = 10;
+        actionMenu.style.left = leftPos + 'px';
+    }
+
+    function menuAction(action) {
+        actionMenu.style.display = 'none';
+        if (!currentActionMsg) return;
+        if (action === 'pin') {
+            fetch(`/announcements/pin/${currentActionMsg.id}`, { method: 'POST' }).then(() => {
+                chatMessages.innerHTML = ''; lastId = 0; fetchMessages();
+            });
+        } else if (action === 'delete') {
+            if (confirm('Удалить сообщение?')) {
+                fetch(`/announcements/delete/${currentActionMsg.id}`, { method: 'POST' }).then(() => {
+                    chatMessages.innerHTML = ''; lastId = 0; fetchMessages();
+                });
+            }
+        }
+    }
+
+    function fetchMessages() {
+        fetch('/announcements/messages?since=' + lastId)
+            .then(r => r.json())
+            .then(data => {
+                let scrollNeeded = false;
+                data.forEach(msg => {
+                    lastId = Math.max(lastId, msg.id);
+                    const el = document.createElement('div');
+                    el.style.cssText = "width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.6); border-radius: 10px; margin-bottom: 8px; box-sizing: border-box; display: grid; grid-template-columns: 1fr auto; gap: 4px;";
+                    let pinnedHtml = msg.is_pinned ? '📌 ' : '';
+                    el.innerHTML = `
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <a href="/user/${msg.user_id}" class="message-author ${getRoleClass(msg.role)}">${msg.username} ${msg.lastname || ''}</a>
+                            <span class="message-time">${msg.time}</span>
+                        </div>
+                        ${canManage ? `<button onclick='showMenu(event, ${JSON.stringify(msg).replace(/'/g, "&#39;")})' style="background:none; border:none; color:#999; font-size:22px; cursor:pointer; padding:0; line-height: 1; display: flex; align-items: flex-start; justify-content: flex-end;">⋮</button>` : '<div></div>'}
+                        <div style="grid-column: 1 / -1; color: #333; margin-top: 4px; font-size: 14px; word-break: break-word;">
+                            ${pinnedHtml}${msg.text}
+                        </div>
+                    `;
+                    chatMessages.appendChild(el);
+                    scrollNeeded = true;
+                });
+                if (scrollNeeded) chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+    }
+
+    if (chatForm) {
+        chatForm.addEventListener('submit', e => {
+            e.preventDefault();
+            if (isSending) return;
+            const text = chatInput.value.trim();
+            if (!text) return;
+            isSending = true;
+            fetch('/announcements/send', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: text})
+            }).finally(() => {
+                isSending = false; chatInput.value = ''; fetchMessages();
+            });
+        });
+    }
+
+    if (actionMenu) {
+        document.addEventListener('click', () => { actionMenu.style.display = 'none'; });
+    }
+
+    setInterval(fetchMessages, 1500);
+    fetchMessages();
+</script>
+{% endblock %}

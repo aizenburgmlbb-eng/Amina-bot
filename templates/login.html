@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<h1>Вход</h1>
+<form method="post">
+    <input name="username" placeholder="Логин" required>
+    <div style="position: relative;">
+        <input name="password" type="password" id="passLogin" placeholder="Пароль" required style="padding-right: 40px;">
+        <span onclick="togglePass('passLogin')" style="position:absolute; right:15px; top:15px; cursor:pointer; user-select:none;">👁️</span>
+    </div>
+    <button type="submit">Войти</button>
+</form>
+<p style="text-align:center; margin-top:15px;">Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a></p>
+
+<script>
+function togglePass(id) {
+    var x = document.getElementById(id);
+    if (x.type === "password") { x.type = "text"; } 
+    else { x.type = "password"; }
+}
+</script>
+{% endblock %}

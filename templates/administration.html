@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Администрация{% endblock %}
+{% block content %}
+<h1>Администрация</h1>
+
+<div style="text-align: center; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+    <a href="{{ url_for('help_chat') }}" class="btn-secondary" style="display:inline-block; padding: 10px 20px; border-radius: 14px; text-decoration: none;">💬 Чат администрации</a>
+    <a href="{{ url_for('logs') }}" class="btn-secondary" style="display:inline-block; padding: 10px 20px; border-radius: 14px; text-decoration: none;">📜 Журнал</a>
+    <a href="{{ url_for('chats_new') }}" class="btn-secondary" style="display:inline-block; padding: 10px 20px; border-radius: 14px; text-decoration: none;">✏️ Личные сообщения</a>
+</div>
+
+<!-- БЛОК ПРАВ -->
+<div style="background: rgba(255,255,255,0.7); border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5;">
+    <h3 style="text-align: center; margin-bottom: 15px; color: #111;">Права и возможности</h3>
+    
+    <div style="margin-bottom: 12px;">
+        <b style="color: #991b1b;">👑 Тех. админ:</b> Полный доступ. Выдает права (Со-владельца, Админа, Модератора), банит, мутит, удаляет/закрепляет сообщения.
+    </div>
+    <div style="margin-bottom: 12px;">
+        <b style="color: #991b1b;">🤝 Со-владелец:</b> Все права Тех. админа, <i>кроме</i> управления самим Тех. админом и другими Со-владельцами. Может банить, выдавать Админов и Модеров.
+    </div>
+    <div style="margin-bottom: 12px;">
+        <b style="color: #b45309;">🛡️ Админ:</b> Выдает Модеров, банит обычных юзеров и модеров. Не может как-либо сделать Совладельцам и другим Админам. Мутит, удаляет/закрепляет сообщения.
+    </div>
+    <div>
+        <b style="color: #1e3a8a;">🟢 Модератор:</b> Выдает мут (до 3 дней) и снимает его. Удаляет/закрепляет сообщения. Не может банить и выдавать права.
+    </div>
+</div>
+
+{% if owner %}
+<div style="background: rgba(254, 243, 199, 0.8); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(245, 158, 11, 0.5); display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <div style="font-size: 12px; text-transform: uppercase; color: #b45309; font-weight: bold; margin-bottom: 5px;">Тех. админ (ID: {{ owner.id }})</div>
+        <a href="/user/{{ owner.id }}" style="font-size: 18px; font-weight: bold; color: #92400e;">{{ owner.username }}</a>
+    </div>
+    {% if owner.id != session.get('user_id') %}
+        <a href="{{ url_for('chats_start', target_id=owner.id) }}" class="btn-secondary" style="width:auto; padding: 8px 12px; border-radius: 10px; font-size: 13px; text-decoration: none;">✉️ Написать</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<h3 style="margin-bottom:10px; text-align: center;">Команда</h3>
+{% if staff %}
+    {% for u in staff %}
+    <div style="background: rgba(255, 255, 255, 0.6); padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.5); display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <a href="/user/{{ u.id }}" class="{% if u.role in ['owner', 'co_owner'] %}role-owner{% elif u.role == 'admin' %}role-admin{% else %}role-moderator{% endif %}" style="font-weight: bold; font-size: 16px;">{{ u.username }}</a>
+            <div style="font-size: 12px; color: #666;">
+                {% if u.role == 'co_owner' %}Со-владелец{% elif u.role == 'admin' %}Админ{% else %}Модератор{% endif %}
+            </div>
+        </div>
+        {% if u.id != session.get('user_id') %}
+            <a href="{{ url_for('chats_start', target_id=u.id) }}" class="btn-secondary" style="width:auto; padding: 8px 12px; border-radius: 10px; font-size: 13px; text-decoration: none;">✉️ Написать</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+    <p style="color:#666; text-align: center;">Пока никого нет.</p>
+{% endif %}
+{% endblock %}

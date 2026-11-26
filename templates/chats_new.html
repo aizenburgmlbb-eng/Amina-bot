@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Новое сообщение{% endblock %}
+{% block content %}
+<div class="dialog-header">
+    <a href="{{ url_for('administration') }}">←</a>
+    <h2>Кому написать</h2>
+</div>
+
+<div style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fff;">
+    {% for u in users %}
+        <a href="{{ url_for('chats_start', target_id=u.id) }}" class="chat-list-item" style="border-bottom:1px solid #f1f5f9;">
+            <div class="chat-avatar" style="background: #94a3b8;">{{ u.username[0]|upper }}</div>
+            <div class="chat-info">
+                <div class="chat-name">{{ u.username }} {{ u.lastname or '' }}</div>
+                <div class="chat-last-msg">ID: {{ u.id }} ({{ u.role }})</div>
+            </div>
+        </a>
+    {% else %}
+        <div style="padding: 20px; text-align: center; color: #666;">Нет доступных администраторов для чата.</div>
+    {% endfor %}
+</div>
+{% endblock %}

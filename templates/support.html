@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Фестивалю быть{% endblock %}
+{% block content %}
+
+<div id="support-list">
+    <h1>Фестивалю быть</h1>
+    
+    <div style="border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; overflow: hidden; background: #ffffff;">
+        
+        <!-- Карточка 1: Волонтёр -->
+        <div onclick="showForm('volunteer')" class="chat-list-item" style="border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; background: #ffffff;">
+            <div class="chat-avatar" style="background: transparent; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: #ff6600;
+                            -webkit-mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat; 
+                            mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat;">
+                </div>
+            </div>
+            <div class="chat-info">
+                <div class="chat-name">Стать волонтёром</div>
+                <div class="chat-last-msg">Заполнить анкету на участие</div>
+            </div>
+        </div>
+
+        <!-- Карточка 2: Спонсор (в разработке) -->
+        <div class="chat-list-item" style="border-bottom: 1px solid rgba(0,0,0,0.05); opacity: 0.6; cursor: not-allowed; background: #ffffff;">
+            <div class="chat-avatar" style="background: transparent; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: #ff6600;
+                            -webkit-mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat; 
+                            mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat;">
+                </div>
+            </div>
+            <div class="chat-info">
+                <div class="chat-name">Стать спонсором</div>
+                <div class="chat-last-msg">Раздел в разработке</div>
+            </div>
+        </div>
+
+        <!-- Карточка 3: Системные уведомления -->
+        {% if sys_dialog %}
+        <a href="{{ url_for('chat_dialog', dialog_id=sys_dialog.id) }}" class="chat-list-item" style="text-decoration: none; color: inherit; background: #ffffff;">
+            <div class="chat-avatar" style="background: transparent; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: #ff6600;
+                            -webkit-mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat; 
+                            mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat;">
+                </div>
+            </div>
+            <div class="chat-info">
+                <div class="chat-name">Системные уведомления</div>
+                <div class="chat-last-msg">Официальные сообщения от администрации</div>
+            </div>
+        </a>
+        {% else %}
+        <div class="chat-list-item" style="opacity: 0.6; cursor: not-allowed; background: #ffffff;">
+            <div class="chat-avatar" style="background: transparent; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: #ff6600;
+                            -webkit-mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat; 
+                            mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat;">
+                </div>
+            </div>
+            <div class="chat-info">
+                <div class="chat-name">Системные уведомления</div>
+                <div class="chat-last-msg">Пока нет уведомлений</div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<div id="volunteer-form" style="display: none;">
+    <div class="dialog-header">
+        <a href="javascript:void(0)" onclick="showList()" style="cursor: pointer;">←</a>
+        <h2>Анкета волонтёра</h2>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 15px;">
+        <form method="post" action="{{ url_for('volunteer_apply') }}">
+            <input type="text" name="name" placeholder="Имя и Фамилия" required maxlength="50">
+            <input type="number" name="age" placeholder="Возраст" required min="14" max="99">
+            
+            <div style="margin-bottom: 14px;">
+                <div style="font-size: 14px; color: #555; margin-bottom: 8px; font-weight: 500;">
+                    В какой сфере хотите помочь? <span style="font-size: 12px; color: #888;">(выберите до 2 вариантов)</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(255,255,255,0.75); padding: 12px; border-radius: 14px; border: 1px solid rgba(0,0,0,0.08);">
+                    {% set spheres = [
+                        "Строительство",
+                        "Украшение / Дизайн",
+                        "Фото / Видео материалы",
+                        "Разнорабочий",
+                        "Кухня",
+                        "Сборка шатров",
+                        "Уборка мусора на территории фестиваля",
+                        "Дружина / охрана",
+                        "Подвоз моделей",
+                        "Подарить материал фестивалю"
+                    ] %}
+                    
+                    {% for s in spheres %}
+                    <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #333; cursor: pointer; line-height: 1.2;">
+                        <input type="checkbox" name="sphere" value="{{ s }}" class="sphere-checkbox" style="width: auto; margin: 0; margin-top: 2px; cursor: pointer;">
+                        <span>{{ s }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <textarea name="info" placeholder="Дополнительная информация (до 500 символов)" maxlength="500" style="height: 80px; resize: none;"></textarea>
+            <button type="submit" class="btn-success">Отправить заявку</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showForm(type) {
+        document.getElementById('support-list').style.display = 'none';
+        document.getElementById('volunteer-form').style.display = 'block';
+    }
+    function showList() {
+        document.getElementById('volunteer-form').style.display = 'none';
+        document.getElementById('support-list').style.display = 'block';
+    }
+
+    // Ограничение выбора чекбоксов до 2-х
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkboxes = document.querySelectorAll('.sphere-checkbox');
+        checkboxes.forEach(box => {
+            box.addEventListener('change', () => {
+                const checkedCount = document.querySelectorAll('.sphere-checkbox:checked').length;
+                if (checkedCount > 2) {
+                    box.checked = false;
+                    alert('Можно выбрать не более 2 сфер.');
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

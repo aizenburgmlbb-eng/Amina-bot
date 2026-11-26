@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Сибирия | Медиа{% endblock %}
+{% block content %}
+<h1>Сибирия | Медиа</h1>
+
+<div style="border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; overflow: hidden; background: #ffffff;">
+    
+    <!-- Карточка 1: Общий чат -->
+    <a href="{{ url_for('media_chat') }}" class="chat-list-item" style="border-bottom: 1px solid rgba(0,0,0,0.05); background: #ffffff;">
+        <div class="chat-avatar" style="background: transparent; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                        background: #ff6600;
+                        -webkit-mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat; 
+                        mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat;">
+            </div>
+        </div>
+        <div class="chat-info">
+            <div class="chat-name">Сибирия | медиа</div>
+            <div class="chat-last-msg">Общий чат для общения</div>
+        </div>
+    </a>
+
+    <!-- Карточка 2: Объявления -->
+    <a href="{{ url_for('announcements') }}" class="chat-list-item" style="background: #ffffff;">
+        <div class="chat-avatar" style="background: transparent; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                        background: #ff6600;
+                        -webkit-mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat; 
+                        mask: url('{{ url_for('static', filename='images/logo.png') }}') center / 65% no-repeat;">
+            </div>
+        </div>
+        <div class="chat-info">
+            <div class="chat-name">Объявления</div>
+            <div class="chat-last-msg">Официальные сообщения от администрации</div>
+        </div>
+    </a>
+
+</div>
+{% endblock %}

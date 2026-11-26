@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Мой профиль{% endblock %}
+
+{% block content %}
+<style>
+    .my-profile-card {
+        width: min(100%, 680px);
+        margin: 18px auto 28px;
+        padding: 34px 28px 30px;
+        box-sizing: border-box;
+        border: 1px solid rgba(255,255,255,.62);
+        border-radius: 38px;
+        background: rgba(255,255,255,.48);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 8px 32px rgba(30,70,90,.10);
+    }
+    .my-profile-logo {
+        width: 220px;
+        height: 220px;
+        max-width: 65%;
+        margin: 0 auto 12px;
+        background: #111;
+        -webkit-mask: url("{{ url_for('static', filename='images/logo.png') }}") center / contain no-repeat;
+        mask: url("{{ url_for('static', filename='images/logo.png') }}") center / contain no-repeat;
+    }
+    .my-profile-brand {
+        margin: 0 0 38px;
+        text-align: center;
+        font-size: clamp(32px, 7vw, 54px);
+        font-weight: 400;
+        letter-spacing: 2px;
+    }
+    .my-profile-heading {
+        margin: 0 0 48px;
+        text-align: center;
+        font-size: 27px;
+        font-weight: 600;
+    }
+    .my-profile-form { width: 100%; }
+    .my-profile-row {
+        display: grid;
+        grid-template-columns: minmax(90px, 1fr) minmax(0, 1.45fr);
+        align-items: center;
+        gap: 18px;
+        padding: 18px 0;
+        border-bottom: 1px solid rgba(40,55,65,.16);
+    }
+    .my-profile-row label,
+    .my-profile-label {
+        color: rgba(35,45,55,.58);
+        font-size: 15px;
+    }
+    .my-profile-value,
+    .my-profile-row input,
+    .my-profile-row select {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 15px 18px;
+        border: 1px solid rgba(255,255,255,.75);
+        border-radius: 28px;
+        background: rgba(255,255,255,.38);
+        color: #171717;
+        font: inherit;
+        outline: none;
+    }
+    .my-profile-value {
+        border-color: transparent;
+        background: transparent;
+        text-align: right;
+        font-weight: 600;
+    }
+    .my-profile-save {
+        display: block;
+        width: 100%;
+        margin-top: 18px;
+        padding: 15px 20px;
+        border: 1px solid rgba(255,255,255,.85);
+        border-radius: 30px;
+        background: rgba(255,255,255,.38);
+        color: #171717;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .my-profile-save:hover { background: rgba(255,255,255,.62); }
+    @media (max-width: 480px) {
+        .my-profile-card { padding: 26px 20px 24px; border-radius: 32px; }
+        .my-profile-row { grid-template-columns: 1fr; gap: 8px; }
+        .my-profile-value { text-align: left; padding-left: 8px; }
+        .my-profile-heading { margin-bottom: 34px; }
+    }
+</style>
+
+<section class="my-profile-card">
+    <div class="my-profile-logo" aria-label="Логотип"></div>
+    <h1 class="my-profile-heading">МОЙ ПРОФИЛЬ</h1>
+
+    <form class="my-profile-form" method="post" action="">
+        {# Если в проекте используется Flask-WTF, раскомментируйте следующую строку: #}
+        {# {{ form.csrf_token }} #}
+
+        <div class="my-profile-row">
+            <span class="my-profile-label">Имя</span>
+            <span class="my-profile-value">{{ user.username }}</span>
+        </div>
+
+        <div class="my-profile-row">
+            <label for="lastname">Фамилия</label>
+            <input id="lastname" type="text" name="lastname"
+                   value="{{ user.lastname or '' }}" placeholder="Введите фамилию"
+                   maxlength="100">
+        </div>
+
+        <div class="my-profile-row">
+            <label for="gender">Пол</label>
+            <select id="gender" name="gender">
+                <option value="" {% if not user.gender %}selected{% endif %}>Не указан</option>
+                <option value="Мужской" {% if user.gender == 'Мужской' %}selected{% endif %}>Мужской</option>
+                <option value="Женский" {% if user.gender == 'Женский' %}selected{% endif %}>Женский</option>
+            </select>
+        </div>
+
+        <button class="my-profile-save" type="submit">СОХРАНИТЬ ПРОФИЛЬ</button>
+    </form>
+</section>
+{% endblock %}
